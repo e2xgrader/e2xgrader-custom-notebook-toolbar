@@ -1,0 +1,16 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.5.1
+_src_path: https://github.com/jupyterlab/extension-template
+author_email: luca.ringhausen@h-brs.de
+author_name: Luca Ringhausen
+has_ai_rules: false
+has_binder: false
+has_settings: false
+kind: frontend
+labextension_name: '@e2xgrader/custom-notebook-toolbar'
+project_short_description: A JupyterLab extension, that replaces parts of the original
+    notebook-toolbar implementation to create a basic blank-slate toolbar.
+python_name: e2xgrader_custom_notebook_toolbar
+repository: https://github.com/e2xgrader/e2xgrader-custom-notebook-toolbar
+test: true
+
