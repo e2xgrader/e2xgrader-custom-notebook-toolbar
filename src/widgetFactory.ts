@@ -37,6 +37,7 @@ import { IObservableList } from '@jupyterlab/observables';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 import { ToolbarItems as DocToolbarItems } from '@jupyterlab/docmanager-extension';
+import {createAdditionalResourcesItem} from "./additionalResourcesWidget";
 
 /**
  * The name of the factory that creates notebooks.
@@ -118,6 +119,10 @@ export function activateWidgetFactory(
 
       return indicator;
     }
+  );
+
+  toolbarRegistry.addFactory<NotebookPanel>(FACTORY, 'additional_resources', () =>
+      createAdditionalResourcesItem()
   );
 
   /* create the default notebook toolbar factory

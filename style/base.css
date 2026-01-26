@@ -3,3 +3,25 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+.jp-NotebookPanel-toolbar .jp-Toolbar-item[data-jp-item-name="submit"] .jp-ToolbarButtonComponent{
+    background-color: var(--jp-notebook-icon-color);
+    color: white;
+}
+
+.jp-NotebookPanel-toolbar .jp-Toolbar-item[data-jp-item-name="submit"] .jp-ToolbarButtonComponent:hover{
+    background-color: var(--md-orange-900);
+}
+
+.jp-NotebookPanel-toolbar ul.jp-Notebook-toolbarAdditionalResourcesDropdown{
+    position: absolute;
+    list-style-type: none;
+    margin: 0;
+    padding: 0.5rem;
+    background-color: var(--jp-toolbar-background);
+    box-shadow: var(--jp-toolbar-box-shadow);
+    clip-path: inset(0 -5px -5px -5px);
+}
+
+.jp-NotebookPanel-toolbar ul.jp-Notebook-toolbarAdditionalResourcesDropdown li:not(:first-child){
+    padding-top: 0.5rem;
+}
