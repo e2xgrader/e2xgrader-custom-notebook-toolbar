@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import { ServerConnection } from '@jupyterlab/services';
 import { URLExt } from '@jupyterlab/coreutils';
+import {bookIcon} from "./icons";
 
 export interface AdditionalResource {
   label: string;
@@ -70,7 +71,7 @@ export class AdditionalResourcesWidget extends ReactWidget {
 
   render(): JSX.Element {
     return (<div>
-          <ToolbarButtonComponent label={'Additional Resources'} onClick={this.handleButtonClick} />
+          <ToolbarButtonComponent label={'Additional Resources'} icon={bookIcon} iconClass={'reduce-icon-size'} onClick={this.handleButtonClick} />
           {this._showDropdown && (<ul className={TOOLBAR_ADDITIONAL_RESOURCES_DROPDOWN_CLASS}>
             {this._additionalResources.map(resource => {
               return <li>

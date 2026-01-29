@@ -5,8 +5,8 @@ import {
 import {
   INotebookWidgetFactory,
   NotebookWidgetFactory,
-  NotebookPanel
-}  from '@jupyterlab/notebook';
+  NotebookPanel, INotebookTracker
+} from '@jupyterlab/notebook';
 import {
   IEditorServices
 } from '@jupyterlab/codeeditor';
@@ -14,6 +14,7 @@ import {
   IRenderMimeRegistry
 } from '@jupyterlab/rendermime';
 import {
+  ICommandPalette,
   ISessionContextDialogs,
   IToolbarWidgetRegistry,
   ToolbarWidgetRegistry
@@ -23,6 +24,9 @@ import { ITranslator } from '@jupyterlab/translation';
 
 import {activateWidgetFactory} from "./widgetFactory";
 import {createDefaultFactory} from "./toolbarRegistry";
+import {SubmitCommand} from "./submitCommand";
+
+export const SUBMIT_COMMAND_ID = 'e2xgrader:submit-notebook';
 
 /**
  * Initialization data for the @e2xgrader/custom-notebook-toolbar:widget-factory extension.
@@ -60,10 +64,33 @@ export const toolbarRegistry: JupyterFrontEndPlugin<IToolbarWidgetRegistry> = {
 
 
 /**
+ * Initialization data for the @e2xgrader/custom-notebook-toolbar:submit-command extension.
+ */
+export const submitCommandExt: JupyterFrontEndPlugin<void> = {
+  id: '@e2xgrader/custom-notebook-toolbar:submit-command',
+  description: 'adds a submit command.',
+  requires: [
+      INotebookTracker,
+      ICommandPalette
+  ],
+  autoStart: true,
+  activate: (app: JupyterFrontEnd, notebookTracker: INotebookTracker, commandPalette: ICommandPalette) => {
+    console.log('registering submit command');
+    app.commands.addCommand(SUBMIT_COMMAND_ID, new SubmitCommand(notebookTracker));
+    commandPalette.addItem({
+      command: SUBMIT_COMMAND_ID,
+      category: 'e2xgrader'
+    });
+  }
+};
+
+
+/**
  * Export the plugins as default.
  */
 const plugins: JupyterFrontEndPlugin<any>[] = [
   widgetFactory,
-  toolbarRegistry
+  toolbarRegistry,
+  submitCommandExt
 ];
 export default plugins;

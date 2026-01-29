@@ -6,6 +6,17 @@
       { "name": "save", "rank": 10 },
       { "name": "run", "command": "runmenu:run", "rank": 30 },
       { "name": "interrupt", "command": "kernelmenu:interrupt", "rank": 31 },
+      {
+        "name": "restart-and-run",
+        "command": "notebook:restart-run-all",
+        "rank": 32
+      },
+      {
+        "name": "clear-all-outputs",
+        "command": "notebook:clear-all-cell-outputs",
+        "icon": "ui-components:clear",
+        "rank": 33
+      },
       { "name": "spacer", "type": "spacer", "rank": 100 },
       { "name": "executionProgress", "rank": 1002 }
     ]

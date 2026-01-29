@@ -25,3 +25,16 @@
 .jp-NotebookPanel-toolbar ul.jp-Notebook-toolbarAdditionalResourcesDropdown li:not(:first-child){
     padding-top: 0.5rem;
 }
+
+.jp-ToolbarButtonComponent::part(content){
+    gap: 0.15rem;
+}
+
+.jp-Notebook-toolbarAdditionalResourcesDropdown li:hover{
+    text-decoration: underline;
+}
+
+.reduce-icon-size{
+    width: 12px;
+    height: 12px;
+}
