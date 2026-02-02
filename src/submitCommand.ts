@@ -32,17 +32,14 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
 
   constructor(notebookTracker: INotebookTracker) {
     console.log('instance', SubmitCommand.instanceId++);
-    this.tracker = notebookTracker;
     const that = this;
-    notebookTracker.currentChanged.connect(async () => {
-      console.log('widget focused', that.tracker?.currentWidget);
-      await this.loadFetchedAssignments();
-      console.log(this._fetchedAssignments);
+    this.tracker = notebookTracker;
+    this.loadFetchedAssignments().then(() => {
+      that.tracker?.forEach(widget => console.log('widget', widget));
     });
   }
 
   isEnabled = (): boolean => {
-    console.log(this.tracker?.currentWidget?.context.localPath);
     return this._fetchedAssignments.some(assignment => assignment.notebooks.some(notebook => notebook.path === this.tracker?.currentWidget?.context.localPath));
   }
 
@@ -57,6 +54,7 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
               });
         })
       ));
+    console.log(this._fetchedAssignments);
   }
 
   private async fetchCourses(): Promise<string[]>{
