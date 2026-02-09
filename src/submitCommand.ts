@@ -1,12 +1,17 @@
 import {CommandRegistry} from "@lumino/commands";
 import {paperPlaneIcon} from "./icons";
 import {LabIcon} from "@jupyterlab/ui-components";
-import {INotebookTracker} from "@jupyterlab/notebook";
+import {INotebookTracker, NotebookPanel} from "@jupyterlab/notebook";
 import {ServerConnection} from "@jupyterlab/services";
 import {URLExt} from "@jupyterlab/coreutils";
+import {PanelLayout} from "@lumino/widgets";
+import {ToolbarLabelComponent} from "./toolbarLabel";
+import IProps = ToolbarLabelComponent.IProps;
+import {SUBMIT_COMMAND_ID} from "./index";
 
 const COURSE_API_PATH = 'courses';
 const ASSIGNMENT_API_PATH = 'assignments';
+const SUBMIT_NOTEBOOK_API_PATH = 'assignments/submit';
 
 export interface NbGraderNotebook {
   notebook_id: string,
@@ -31,16 +36,23 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
   static instanceId: number = 0;
 
   constructor(notebookTracker: INotebookTracker) {
-    console.log('instance', SubmitCommand.instanceId++);
-    const that = this;
     this.tracker = notebookTracker;
-    this.loadFetchedAssignments().then(() => {
-      that.tracker?.forEach(widget => console.log('widget', widget));
+    this.tracker.widgetAdded.connect((tracker: INotebookTracker, widget: NotebookPanel) => {
+      this.loadFetchedAssignments().then(() => {
+        (widget.toolbar.layout as PanelLayout).widgets.forEach(toolbarItemWidget => {
+          if(((toolbarItemWidget as any)['props'] as IProps)?.id === SUBMIT_COMMAND_ID) toolbarItemWidget.update();
+        });
+      });
     });
   }
 
   isEnabled = (): boolean => {
-    return this._fetchedAssignments.some(assignment => assignment.notebooks.some(notebook => notebook.path === this.tracker?.currentWidget?.context.localPath));
+    console.log('isEnabled() was called', this.tracker?.currentWidget?.context.localPath, JSON.stringify(this._fetchedAssignments));
+    return !!this.findAssignment(this.tracker?.currentWidget?.context.localPath ?? '');
+  }
+
+  private getCurrentNotebookPath = (): string | undefined => {
+    return this.tracker?.currentWidget?.context.localPath;
   }
 
   private async loadFetchedAssignments(): Promise<void>{
@@ -83,28 +95,33 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
       });
   }
 
-  async execute(): Promise<void> {
-    /*const dataToSend = { course_id: '', assignment_id: '' };
-    try {
-      const reply = await requestAPI<any>('assignments/submit', {
-        body: JSON.stringify(dataToSend),
-        method: 'POST'
+  private findAssignment = (path: string): NbGraderAssignment | undefined => {
+    return this._fetchedAssignments.find(assignment => assignment.notebooks.some(notebook => notebook.path === path));
+  }
+
+  execute = async (): Promise<void> => {
+    const notebookPath: string | undefined = this.getCurrentNotebookPath();
+    if(!notebookPath){
+      console.warn("unable to identify the current notebook's path -> unable to submit");
+      return;
+    }
+    const assignment: NbGraderAssignment | undefined = this.findAssignment(notebookPath);
+    if(!assignment){
+      console.warn("notebook seems not to be part of any assignment -> unable to submit");
+      return;
+    }
+    const dataToSend = { course_id: assignment.course_id, assignment_id: assignment.assignment_id };
+
+    const settings = ServerConnection.makeSettings();
+    const requestUrl = URLExt.join(settings.baseUrl, SUBMIT_NOTEBOOK_API_PATH);
+
+    await ServerConnection.makeRequest(requestUrl, {method: 'POST', body: JSON.stringify(dataToSend)}, settings)
+      .then(async (response) => {
+        console.log('notebook has been submitted');
+        console.log(await response.json());
+      })
+      .catch(error => {
+        throw new ServerConnection.NetworkError(error as TypeError);
       });
-
-      if(!reply.success){
-        that.submit_error(reply);
-        button.innerText = 'Submit'
-        button.removeAttribute('disabled')
-      }else{
-        that.on_refresh(reply);
-      }
-
-    } catch (reason) {
-      remove_children(container);
-      container.innerText = 'Error submitting assignment.';
-      console.error(
-        `Error on POST /assignment_list/assignments/submit ${dataToSend}.\n${reason}`
-      );
-    }*/
   }
 }
