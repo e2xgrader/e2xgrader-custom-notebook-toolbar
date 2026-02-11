@@ -6,10 +6,17 @@
 .jp-NotebookPanel-toolbar .jp-Toolbar-item[data-jp-item-name="submit"] .jp-ToolbarButtonComponent{
     background-color: var(--jp-notebook-icon-color);
     color: white;
+    position: relative;
 }
 
 .jp-NotebookPanel-toolbar .jp-Toolbar-item[data-jp-item-name="submit"] .jp-ToolbarButtonComponent:hover{
     background-color: var(--md-orange-900);
+}
+
+.jp-NotebookPanel-toolbar .jp-Toolbar-item[data-jp-item-name="submit"] .jp-ToolbarButtonComponent.submitting::after{
+    position: absolute;
+    content: 'x';
+    margin: 0 auto;
 }
 
 .jp-NotebookPanel-toolbar ul.jp-Notebook-toolbarAdditionalResourcesDropdown{

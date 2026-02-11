@@ -1,5 +1,5 @@
 import {CommandRegistry} from "@lumino/commands";
-import {paperPlaneIcon} from "./icons";
+import {paperPlaneIcon, spinnerIcon} from "./icons";
 import {LabIcon} from "@jupyterlab/ui-components";
 import {INotebookTracker, NotebookPanel} from "@jupyterlab/notebook";
 import {ServerConnection} from "@jupyterlab/services";
@@ -29,25 +29,30 @@ export interface NbGraderAssignment {
 export class SubmitCommand implements CommandRegistry.ICommandOptions {
   label: string = 'Submit';
   caption: string = 'Submit notebook';
-  icon: LabIcon =  paperPlaneIcon;
+  icon = (): LabIcon => { return this.submitting ? spinnerIcon : paperPlaneIcon};
   iconClass: string = 'reduce-icon-size';
   _fetchedAssignments: NbGraderAssignment[] = [];
   private tracker?: INotebookTracker;
   static instanceId: number = 0;
+  private submitting: boolean = false;
 
   constructor(notebookTracker: INotebookTracker) {
     this.tracker = notebookTracker;
     this.tracker.widgetAdded.connect((tracker: INotebookTracker, widget: NotebookPanel) => {
       this.loadFetchedAssignments().then(() => {
-        (widget.toolbar.layout as PanelLayout).widgets.forEach(toolbarItemWidget => {
-          if(((toolbarItemWidget as any)['props'] as IProps)?.id === SUBMIT_COMMAND_ID) toolbarItemWidget.update();
-        });
+        this.updateSubmitButtons(widget);
       });
     });
   }
 
+  private updateSubmitButtons = (widget: NotebookPanel): void => {
+    (widget.toolbar.layout as PanelLayout).widgets.forEach(toolbarItemWidget => {
+      if(((toolbarItemWidget as any)['props'] as IProps)?.id === SUBMIT_COMMAND_ID) toolbarItemWidget.update();
+    });
+  }
+
   isEnabled = (): boolean => {
-    console.log('isEnabled() was called', this.tracker?.currentWidget?.context.localPath, JSON.stringify(this._fetchedAssignments));
+    if(this.submitting) return false;
     return !!this.findAssignment(this.tracker?.currentWidget?.context.localPath ?? '');
   }
 
@@ -99,15 +104,28 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
     return this._fetchedAssignments.find(assignment => assignment.notebooks.some(notebook => notebook.path === path));
   }
 
+  private blockSubmit = (): void => {
+    this.submitting = true;
+    this.updateSubmitButtons(this.tracker?.currentWidget as NotebookPanel);
+  }
+
+  private unblockSubmit = (): void => {
+    this.submitting = false;
+    this.updateSubmitButtons(this.tracker?.currentWidget as NotebookPanel);
+  }
+
   execute = async (): Promise<void> => {
+    this.blockSubmit();
     const notebookPath: string | undefined = this.getCurrentNotebookPath();
     if(!notebookPath){
       console.warn("unable to identify the current notebook's path -> unable to submit");
+      this.unblockSubmit();
       return;
     }
     const assignment: NbGraderAssignment | undefined = this.findAssignment(notebookPath);
     if(!assignment){
       console.warn("notebook seems not to be part of any assignment -> unable to submit");
+      this.unblockSubmit();
       return;
     }
     const dataToSend = { course_id: assignment.course_id, assignment_id: assignment.assignment_id };
@@ -119,8 +137,10 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
       .then(async (response) => {
         console.log('notebook has been submitted');
         console.log(await response.json());
+        this.unblockSubmit();
       })
       .catch(error => {
+        this.unblockSubmit();
         throw new ServerConnection.NetworkError(error as TypeError);
       });
   }
