@@ -8,23 +8,13 @@ import {PanelLayout} from "@lumino/widgets";
 import {ToolbarLabelComponent} from "./toolbarLabel";
 import IProps = ToolbarLabelComponent.IProps;
 import {SUBMIT_COMMAND_ID} from "./index";
+import {showDialog, Dialog} from '@jupyterlab/apputils';
+import {NbGraderAssignment, NbGraderNotebook, E2xGraderSubmissionResponse} from "@e2xgrader/core";
+import {SubmissionConfirmationWidget} from "./submissionConfirmationWidget";
 
 const COURSE_API_PATH = 'courses';
 const ASSIGNMENT_API_PATH = 'assignments';
 const SUBMIT_NOTEBOOK_API_PATH = 'assignments/submit';
-
-export interface NbGraderNotebook {
-  notebook_id: string,
-  path: string
-}
-
-export interface NbGraderAssignment {
-  course_id: string,
-  assignment_id: string,
-  status: 'released' | 'fetched',
-  path: string,
-  notebooks: NbGraderNotebook[]
-}
 
 export class SubmitCommand implements CommandRegistry.ICommandOptions {
   label: string = 'Submit';
@@ -101,7 +91,7 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
   }
 
   private findAssignment = (path: string): NbGraderAssignment | undefined => {
-    return this._fetchedAssignments.find(assignment => assignment.notebooks.some(notebook => notebook.path === path));
+    return this._fetchedAssignments.find(assignment => assignment.notebooks.some((notebook: NbGraderNotebook) => notebook.path === path));
   }
 
   private blockSubmit = (): void => {
@@ -135,13 +125,38 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
 
     await ServerConnection.makeRequest(requestUrl, {method: 'POST', body: JSON.stringify(dataToSend)}, settings)
       .then(async (response) => {
-        console.log('notebook has been submitted');
-        console.log(await response.json());
+        if(response.status === 200) {
+          const responseData: E2xGraderSubmissionResponse = await response.json();
+          console.log('notebook has been submitted');
+          console.log(responseData);
+          if(responseData.hashcode) {
+            this.showConfirmationDialog(responseData.timestamp, URLExt.join(settings.baseUrl, 'view', notebookPath.replace(".ipynb", "_hashcode.html")));
+          }
+        } else {
+          alert('failed to submit notebook');
+        }
         this.unblockSubmit();
       })
       .catch(error => {
         this.unblockSubmit();
         throw new ServerConnection.NetworkError(error as TypeError);
+      });
+  }
+
+  private showConfirmationDialog(timestamp: string, hashcodeUrl: string): void{
+    showDialog({
+      title: "Exam submission successful",
+      body: new SubmissionConfirmationWidget(timestamp),
+      buttons: [
+        Dialog.cancelButton({label: 'No, continue working on the exam'}),
+        Dialog.okButton({ label: 'Yes, exit exam' })
+      ],
+
+    })
+      .then(result => {
+        if(result.button.accept){
+          window.location.href = hashcodeUrl;
+        }
       });
   }
 }
