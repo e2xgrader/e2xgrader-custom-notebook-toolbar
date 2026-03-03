@@ -1725,7 +1725,7 @@ __metadata:
 
 "@e2xgrader/core@file:../e2xgrader-core::locator=%40e2xgrader%2Fcustom-notebook-toolbar%40workspace%3A.":
   version: 0.1.0-a1
-  resolution: "@e2xgrader/core@file:../e2xgrader-core#../e2xgrader-core::hash=b0e167&locator=%40e2xgrader%2Fcustom-notebook-toolbar%40workspace%3A."
+  resolution: "@e2xgrader/core@file:../e2xgrader-core#../e2xgrader-core::hash=fdb2ae&locator=%40e2xgrader%2Fcustom-notebook-toolbar%40workspace%3A."
   dependencies:
     "@jupyter/ydoc": ^3.0.5
     "@jupyterlab/application": ^4.0.0
@@ -1740,7 +1740,7 @@ __metadata:
     "@lumino/messaging": ^2.0.3
     "@lumino/signaling": ^2.1.4
     "@lumino/widgets": ^2.7.1
-  checksum: 8a9f6e1a1678f77551857be27eb02710480fa128df83967346bbfb662f5a60cedafc212e825818554ea7c58738891e155438e221a497ec3ba86c531ad859e2e2
+  checksum: 981c7d49a1b967588c86b27390eafb73d78e5fc7d4e82a74007c1953dffe1261902ea19d7e25c3477b52230ea9af9938545b7662390ea1721c794e5b4d142bb7
   languageName: node
   linkType: hard
 

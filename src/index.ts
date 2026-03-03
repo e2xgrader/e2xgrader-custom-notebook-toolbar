@@ -55,10 +55,9 @@ export const toolbarRegistry: JupyterFrontEndPlugin<IToolbarWidgetRegistry> = {
   autoStart: true,
   provides: IToolbarWidgetRegistry,
   activate: (app: JupyterFrontEnd) => {
-    const registry = new ToolbarWidgetRegistry({
+    return new ToolbarWidgetRegistry({
       defaultFactory: createDefaultFactory(app.commands)
     });
-    return registry;
   }
 };
 
@@ -71,12 +70,14 @@ export const submitCommandExt: JupyterFrontEndPlugin<void> = {
   description: 'adds a submit command.',
   requires: [
       INotebookTracker,
-      ICommandPalette
+      ICommandPalette,
+      ITranslator
   ],
   autoStart: true,
-  activate: (app: JupyterFrontEnd, notebookTracker: INotebookTracker, commandPalette: ICommandPalette) => {
+  activate: (app: JupyterFrontEnd, notebookTracker: INotebookTracker, commandPalette: ICommandPalette, translator: ITranslator) => {
     console.log('registering submit command');
-    app.commands.addCommand(SUBMIT_COMMAND_ID, new SubmitCommand(notebookTracker));
+    const trans = translator.load('e2xgrader_custom_notebook_toolbar');
+    app.commands.addCommand(SUBMIT_COMMAND_ID, new SubmitCommand(notebookTracker, trans));
     commandPalette.addItem({
       command: SUBMIT_COMMAND_ID,
       category: 'e2xgrader'

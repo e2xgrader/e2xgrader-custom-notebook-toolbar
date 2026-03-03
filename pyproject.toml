@@ -32,8 +32,15 @@ source = "nodejs"
 [tool.hatch.metadata.hooks.nodejs]
 fields = ["description", "authors", "urls", "keywords"]
 
+[project.entry-points."jupyterlab.locale"]
+e2xgrader_custom_notebook_toolbar = "e2xgrader_custom_notebook_toolbar"
+
 [tool.hatch.build.targets.sdist]
-artifacts = ["e2xgrader_custom_notebook_toolbar/labextension"]
+artifacts = [
+    "e2xgrader_custom_notebook_toolbar/labextension",
+    "e2xgrader_custom_notebook_toolbar/locale/**/*.json",
+    "e2xgrader_custom_notebook_toolbar/locale/**/*.mo"
+]
 exclude = [".github", "binder"]
 
 [tool.hatch.build.targets.wheel.shared-data]

@@ -11,14 +11,17 @@ import {SUBMIT_COMMAND_ID} from "./index";
 import {showDialog, Dialog} from '@jupyterlab/apputils';
 import {NbGraderAssignment, NbGraderNotebook, E2xGraderSubmissionResponse} from "@e2xgrader/core";
 import {SubmissionConfirmationWidget} from "./submissionConfirmationWidget";
+import {TranslationBundle} from "@jupyterlab/translation";
 
 const COURSE_API_PATH = 'courses';
 const ASSIGNMENT_API_PATH = 'assignments';
 const SUBMIT_NOTEBOOK_API_PATH = 'assignments/submit';
+export const SUBMISSION_CONFIRMATION_BUTTON_CLASS = 'e2x-submission-confirmation-button';
+export const SUBMISSION_REJECTION_BUTTON_CLASS = 'e2x-submission-rejection-button';
 
 export class SubmitCommand implements CommandRegistry.ICommandOptions {
-  label: string = 'Submit';
-  caption: string = 'Submit notebook';
+  label: string = this.trans.__('Submit');
+  caption: string = this.trans.__('Submit notebook');
   icon = (): LabIcon => { return this.submitting ? spinnerIcon : paperPlaneIcon};
   iconClass: string = 'reduce-icon-size';
   _fetchedAssignments: NbGraderAssignment[] = [];
@@ -26,7 +29,7 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
   static instanceId: number = 0;
   private submitting: boolean = false;
 
-  constructor(notebookTracker: INotebookTracker) {
+  constructor(notebookTracker: INotebookTracker, private trans: TranslationBundle) {
     this.tracker = notebookTracker;
     this.tracker.widgetAdded.connect((tracker: INotebookTracker, widget: NotebookPanel) => {
       this.loadFetchedAssignments().then(() => {
@@ -129,8 +132,8 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
           const responseData: E2xGraderSubmissionResponse = await response.json();
           console.log('notebook has been submitted');
           console.log(responseData);
-          if(responseData.hashcode) {
-            this.showConfirmationDialog(responseData.timestamp, URLExt.join(settings.baseUrl, 'view', notebookPath.replace(".ipynb", "_hashcode.html")));
+          if(responseData.hashcode && responseData.timestamp) {
+            this.showConfirmationDialog(responseData.timestamp as string, URLExt.join(settings.baseUrl, 'view', notebookPath.replace(".ipynb", "_hashcode.html")));
           }
         } else {
           alert('failed to submit notebook');
@@ -145,13 +148,12 @@ export class SubmitCommand implements CommandRegistry.ICommandOptions {
 
   private showConfirmationDialog(timestamp: string, hashcodeUrl: string): void{
     showDialog({
-      title: "Exam submission successful",
-      body: new SubmissionConfirmationWidget(timestamp),
+      title: this.trans.__("Exam submission successful"),
+      body: new SubmissionConfirmationWidget(this.trans, timestamp),
       buttons: [
-        Dialog.cancelButton({label: 'No, continue working on the exam'}),
-        Dialog.okButton({ label: 'Yes, exit exam' })
-      ],
-
+        Dialog.cancelButton({label: this.trans.__('No, continue working on the exam'), className: SUBMISSION_REJECTION_BUTTON_CLASS}),
+        Dialog.okButton({ label: this.trans.__('Yes, exit exam'), className: SUBMISSION_CONFIRMATION_BUTTON_CLASS })
+      ]
     })
       .then(result => {
         if(result.button.accept){
